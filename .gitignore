@@ -1,4 +1,6 @@
 output/
-graphql-python-client/
+graphql-python-client
 *.pyc
 get_data - Acceso directo.lnk
+Facturacion.xlsx
+__pycache__/get_data.cpython-310.pyc
