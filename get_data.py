@@ -15,6 +15,8 @@ def load_params_from_txt(text_path):
 
 if __name__ == '__main__':
 
+    # Make sure no probles appear if there was no hash: data empty
+
     # Declaring the main ant the params path
     user_name = os.getlogin()
     pre_user_path = 'C:/Users'
@@ -46,8 +48,8 @@ if __name__ == '__main__':
     summary = luxor.get_subaccount_mining_summary(username,'BTC','_1_HOUR')['data']['getMiningSummary']
     summary_values = [float(info) for info in list(summary.values())]
     summary_values[0] /= 10**15
-    day = time.strftime("%Y/%m/%d,%H:%M:%S").split(',')[0]
-    hour = time.strftime("%Y/%m/%d,%H:%M:%S").split(',')[1]
+    day = time.strftime("%Y/%m/%d")
+    hour = time.strftime("%H:%M:%S")
     summary_values = {'Day': [day],'Hour':[hour],'Hashrate':[summary_values[0]]}
 
     summary_values = pd.DataFrame(data = summary_values)

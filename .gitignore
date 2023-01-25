@@ -4,3 +4,7 @@ graphql-python-client
 get_data - Acceso directo.lnk
 Facturacion.xlsx
 __pycache__/get_data.cpython-310.pyc
+*.txt
+*.xlsx
+*.png
+*.pdf
