@@ -5,10 +5,11 @@ import datetime
 from calendar import monthrange
 import matplotlib.pyplot as plt
 import io
+
 # Report libraries
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.utils import ImageReader
-from reportlab.platypus import Frame, Table, PageTemplate, BaseDocTemplate, Paragraph, Spacer, Image, KeepTogether
+from reportlab.platypus import Frame, Table, PageTemplate, BaseDocTemplate, Paragraph, Spacer, Image, KeepTogether, PageBreak
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
@@ -207,7 +208,7 @@ if __name__ == '__main__':
 
 
   # ------------------- Documento ------------------------
-  doc = create_basic_documnent(pdf_name= pdf_path, month=month )
+  doc = create_basic_documnent(pdf_name= pdf_path, month=month)
   style, table_alignment, styles = get_doc_and_styles(month)
 
   # Titulo del documento
@@ -215,7 +216,7 @@ if __name__ == '__main__':
 
   # 1. Tabla con resumen general del mes
   resumen_together = [Paragraph('Resumen:', styles['Heading2'])]
-  resumen_together.append(Paragraph(f'En la siguiente tabla se muestran los valores del {month}, el total facturado en USD ($) y los BTC totales minados:', styles['BodyText']))
+  resumen_together.append(Paragraph(f'En la siguiente tabla se muestran los valores del {month}, el total facturado en USD ($) y los Bitcoins (BTC) totales minados:', styles['BodyText']))
   resumen_together.append(Spacer(10,10))
   tabla_resumen = {'month': [month], 'Total USD': [round(total_usd,2)], 'Total BTC': [round(total_btc,2)]}
   resumen_together = df2table(pd.DataFrame(data= tabla_resumen), resumen_together, style, table_alignment)
@@ -225,7 +226,7 @@ if __name__ == '__main__':
   hash_together = [Paragraph('Gráfico de los hasheos diarios:', styles['Heading2'])]
   daily_hash = monthly_data_raw['USD']/10
   plot_hash = plt.figure()
-  plt.bar(range(len(daily_hash)), list(daily_hash))
+  plt.stem(range(len(daily_hash)), list(daily_hash))
   plt.title('Hasheo de cada día del mes en pentahashes')
   hash_together.append(fig2image(plot_hash))
   hash_together.append(Paragraph('Para el calculo del total en USD se ha multiplicado el valor diario de los pentahashes por diez y se han sumado.', styles['BodyText']))
@@ -246,7 +247,7 @@ if __name__ == '__main__':
             hash_ponderado.append(average_usd/10)
         else:
             hash_ponderado.append(value)
-    plt.bar(range(len(hash_ponderado)), list(hash_ponderado))
+    plt.stem(range(len(hash_ponderado)), list(hash_ponderado))
     plt.title('Hasheo ponderado de cada día del mes en pentahashes')
     hash_pond_together.append(fig2image(plot_hash))
 
@@ -256,10 +257,60 @@ if __name__ == '__main__':
   btc_together = [Paragraph('Gráfico de los Bitcoins minados diarios:', styles['Heading2'])]
   daily_BTC = monthly_data_raw['BTC']
   plot_BTC = plt.figure()
-  plt.bar(range(len(daily_BTC)), list(daily_BTC))
+  plt.stem(range(len(daily_BTC)), list(daily_BTC))
   plt.title('Bitcoins minados cada día del mes')
   btc_together.append(fig2image(plot_BTC))
   btc_together.append(Paragraph('Para el calculo del total en BTC se ha sumado los valores de los BTC minados cada día.', styles['BodyText']))
   story.append(KeepTogether(btc_together))
 
+  # 5. Tabla con los valores del mes
+  month_table_together = [Paragraph('Tabla detallada del mes: ', styles['Heading2'])]
+  month_table_together.append(Paragraph(f'En la siguiente tabla se muestran los valores detallados del {month}, el promedio de la producción diaria en peta-hashes, el valor de la producción en USD ($) y los BTC minados:', styles['BodyText']))
+  month_table_together.append(Spacer(10,10))
+  average_hashrate_list = []
+  for hashrate in monthly_data_raw['Average Hashrate']:
+    if isinstance(hashrate, float):
+      average_hashrate_list.append(round(hashrate, 2))
+    else:
+      average_hashrate_list.append(hashrate)
+
+  tabla_month = {'Day': monthly_data_raw['Day'], 'Average Hashrate': average_hashrate_list, 'USD': [round(value,2) for value in monthly_data_raw['USD']], 'BTC': [round(value,2) for value in monthly_data_raw['BTC']]}
+  month_table_together = df2table(pd.DataFrame(data= tabla_month), month_table_together, style, table_alignment)
+  story.append(KeepTogether(month_table_together))
+
   doc.build(story)
+
+  
+  # 4. Los dos graficos principales a la vez
+  plot_together_list = [Paragraph('Gráficos de la producción:', styles['Heading2'])]
+  plot_together_list.append(Paragraph('A continuación se muestrán los gráficos de la producción diaria. El gráfico de la izquierda muestra el hash rate (en peta-hashes) y el gráfico de la derecha muestra la producción de bitcoins diaria.', styles['BodyText']))
+  plot_together_list.append(Spacer(10,10))
+  plot_together = plt.figure(figsize= (7,4))
+  plt.subplot(1,2,1)
+  plt.bar(range(1,len(daily_hash)+1), list(daily_hash))
+  plt.title('Hash Rate (peta-hashes)', wrap= True)
+  plt.subplot(1,2,2)
+  plt.bar(range(1,len(daily_BTC)+1), list(daily_BTC))
+  plt.title('Bitcoins minados (BTC)', wrap= True)
+  plt.tight_layout()
+  plot_together_list.append(fig2image(plot_together))
+  plot_together_list.append(Spacer(10,10))
+  
+  bottom_text ='Para el calculo del total en USD se ha multiplicado el valor diario de los peta-hashes por diez y se han sumado.'
+
+  if list(daily_hash).count(0.0) > 0:
+    bottom_text+= ' En el caso de los días que no ha habido producción se ha considerado como si se hubiera hasheado la media de los días que sí ha habido producción.'
+  
+  plot_together_list.append(Paragraph(bottom_text, styles['BodyText']))
+  plot_together_list.append(Paragraph('Para el calculo del total en BTC se han sumado los valores de los BTC minados cada día.', styles['BodyText']))
+
+
+
+  doc = create_basic_documnent(pdf_name= 'Report_.pdf', month=month)
+  story_ = [Paragraph(f'Reporte de datos mensual', styles['Heading1'])]
+  story_.append(Spacer(10,10))
+  story_.append(KeepTogether(resumen_together))
+  story_.append(Spacer(20,20))
+  story_.append(KeepTogether(plot_together_list))
+  story_.append(KeepTogether(month_table_together))
+  doc.build(story_)
