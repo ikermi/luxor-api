@@ -218,7 +218,7 @@ if __name__ == '__main__':
   resumen_together = [Paragraph('Resumen:', styles['Heading2'])]
   resumen_together.append(Paragraph(f'En la siguiente tabla se muestran los valores del {month}, el total facturado en USD ($) y los Bitcoins (BTC) totales minados:', styles['BodyText']))
   resumen_together.append(Spacer(10,10))
-  tabla_resumen = {'month': [month], 'Total USD': [round(total_usd,2)], 'Total BTC': [round(total_btc,2)]}
+  tabla_resumen = {'Mes': [month], 'Total USD': [round(total_usd,2)], 'Total BTC': [round(total_btc,2)]}
   resumen_together = df2table(pd.DataFrame(data= tabla_resumen), resumen_together, style, table_alignment)
   story.append(KeepTogether(resumen_together))
 
@@ -274,7 +274,7 @@ if __name__ == '__main__':
     else:
       average_hashrate_list.append(hashrate)
 
-  tabla_month = {'Day': monthly_data_raw['Day'], 'Average Hashrate': average_hashrate_list, 'USD': [round(value,2) for value in monthly_data_raw['USD']], 'BTC': [round(value,2) for value in monthly_data_raw['BTC']]}
+  tabla_month = {'Día': monthly_data_raw['Day'], 'Hashrate promedio': average_hashrate_list, 'USD': [round(value,2) for value in monthly_data_raw['USD']], 'BTC': [round(value,2) for value in monthly_data_raw['BTC']]}
   month_table_together = df2table(pd.DataFrame(data= tabla_month), month_table_together, style, table_alignment)
   story.append(KeepTogether(month_table_together))
 

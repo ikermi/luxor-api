@@ -50,4 +50,3 @@ if __name__ == '__main__':
     with pd.ExcelWriter(xlsx_path, mode = 'a', engine="openpyxl", if_sheet_exists = 'overlay') as writer:
         daily_values.to_excel(writer, sheet_name="data_mensual", startrow=writer.sheets['data_mensual'].max_row, header = False, index=False) 
 
-        
