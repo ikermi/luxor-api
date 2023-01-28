@@ -9,7 +9,7 @@ import io
 # Report libraries
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.utils import ImageReader
-from reportlab.platypus import Frame, Table, PageTemplate, BaseDocTemplate, Paragraph, Spacer, Image, KeepTogether, PageBreak
+from reportlab.platypus import Frame, Table, PageTemplate, BaseDocTemplate, Paragraph, Spacer, Image, KeepTogether
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
@@ -175,17 +175,12 @@ if __name__ == '__main__':
 
   day = get_day()
 
-  # -------------------------- Overriden ---------------------------
-  xlsx_path = 'Facturacion_YBL.xlsx'
+  # # -------------------------- Overriden ---------------------------
+  # xlsx_path = 'Facturacion_YBL.xlsx'
 
-  day_timestamp = pd.Timestamp(int(day.split('/')[0]), int(day.split('/')[1]), int(day.split('/')[2]))
-
-  if day_timestamp.is_month_end == True:
-      month = day[:7]
-  else:
-      today = datetime.date.today()
-      first = today.replace(day=1)
-      month = (first - datetime.timedelta(days=1)).strftime("%Y/%m")
+  today = datetime.date.today()
+  first = today.replace(day=1)
+  month = (first - datetime.timedelta(days=1)).strftime("%Y/%m")
 
   number_days_on_month = monthrange(int(month[:4]), int(month[-2:]))[1]
 
@@ -208,6 +203,8 @@ if __name__ == '__main__':
 
 
   # ------------------- Documento ------------------------
+  pdf_name = 'Report_' + month.replace('/','-')
+  pdf_path = os.path.join(main_file_path, f'{pdf_name}.pdf')
   doc = create_basic_documnent(pdf_name= pdf_path, month=month)
   style, table_alignment, styles = get_doc_and_styles(month)
 
@@ -305,8 +302,9 @@ if __name__ == '__main__':
   plot_together_list.append(Paragraph('Para el calculo del total en BTC se han sumado los valores de los BTC minados cada día.', styles['BodyText']))
 
 
-
-  doc = create_basic_documnent(pdf_name= 'Report_.pdf', month=month)
+  pdf_name = 'Report_' + month.replace('/','-') + '_'
+  pdf_path = os.path.join(main_file_path, f'{pdf_name}.pdf')
+  doc = create_basic_documnent(pdf_name= pdf_path, month=month)
   story_ = [Paragraph(f'Reporte de datos mensual', styles['Heading1'])]
   story_.append(Spacer(10,10))
   story_.append(KeepTogether(resumen_together))
