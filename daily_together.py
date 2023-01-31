@@ -60,6 +60,7 @@ if __name__ == '__main__':
     for node in luxor.get_subaccount_hashrate_history(username, 'BTC', '_1_HOUR', 25 )['data']['getHashrateHistory']['edges']:
         values.append([node['node']['time'].split('T')[0].replace('-','/'),node['node']['time'].split('T')[1].split('+')[0], float(node['node']['hashrate'])/10**15])
 
+    
     values = sorted(values)
 
     data = pd.read_excel(xlsx_path, sheet_name='data_diaria_bruta')
@@ -98,19 +99,21 @@ if __name__ == '__main__':
     day = (date.today()-timedelta(1)).strftime("%Y/%m/%d")
     data = pd.read_excel(xlsx_path, sheet_name='data_diaria')
     daily_data = data[data['Day'].str.contains(day)]
+    month_data = pd.read_excel(xlsx_path, sheet_name='data_mensual')
 
-    if len(daily_data) == 0:
-        average_hashrate = 'No hashrate'
-        usd = 0
-    else:   
-        average_hashrate = sum(daily_data['Hashrate'])/len(daily_data)
-        usd = average_hashrate*10
+    if not day in list(month_data['Day']):
+        if len(daily_data) == 0:
+            average_hashrate = 'No hashrate'
+            usd = 0
+        else:   
+            average_hashrate = sum(daily_data['Hashrate'])/len(daily_data)
+            usd = average_hashrate*10
 
-    username = luxor.get_subaccounts(first=10)['data']['users']['edges'][0]['node']['username']
-    daily_BTC = luxor.get_subaccount_mining_summary(username,'BTC','_1_DAY')['data']['getMiningSummary']['revenue']
+        username = luxor.get_subaccounts(first=10)['data']['users']['edges'][0]['node']['username']
+        daily_BTC = luxor.get_subaccount_mining_summary(username,'BTC','_1_DAY')['data']['getMiningSummary']['revenue']
 
-    daily_values = {'Day': [day],'Average Hashrate':[average_hashrate], 'USD': [usd], 'BTC': [daily_BTC]}
-    daily_values = pd.DataFrame(data= daily_values)
+        daily_values = {'Day': [day],'Average Hashrate':[average_hashrate], 'USD': [usd], 'BTC': [daily_BTC]}
+        daily_values = pd.DataFrame(data= daily_values)
 
-    with pd.ExcelWriter(xlsx_path, mode = 'a', engine="openpyxl", if_sheet_exists = 'overlay') as writer:
-        daily_values.to_excel(writer, sheet_name="data_mensual", startrow=writer.sheets['data_mensual'].max_row, header = False, index=False) 
+        with pd.ExcelWriter(xlsx_path, mode = 'a', engine="openpyxl", if_sheet_exists = 'overlay') as writer:
+            daily_values.to_excel(writer, sheet_name="data_mensual", startrow=writer.sheets['data_mensual'].max_row, header = False, index=False) 
